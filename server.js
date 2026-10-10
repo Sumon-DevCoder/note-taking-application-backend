@@ -2,6 +2,10 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
 const createDefaultAdmin = require('./utils/seeder');
 
 
@@ -25,8 +29,31 @@ const app = express();
 // Body parser
 app.use(express.json());
 
+// Set security headers
+app.use(helmet());
+
+// Sanitize data
+app.use(mongoSanitize());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 mins
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Prevent http param pollution
+app.use(hpp());
+
 // Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000', 
+    'https://note-taking-application-frontend-seven.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
