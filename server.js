@@ -32,7 +32,7 @@ app.use(express.json());
 // Set security headers
 app.use(helmet());
 
-// Sanitize data
+// Sanitize data for the nosql injection 
 app.use(mongoSanitize());
 
 // Rate limiting
